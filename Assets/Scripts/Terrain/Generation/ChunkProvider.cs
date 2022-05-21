@@ -6,7 +6,7 @@ namespace PotentialRobot.Terrain.Generation
     {
         private static readonly Vector3 s_defaultRotationEuler = new Vector3(90f, 0f, 0f);
 
-        public GameObject GetNewChunk(Vector3 position, float size, Transform parent)
+        public GameObject GetChunk(Vector3 position, float size, Transform parent)
         {
             GameObject chunk = CreateNewChunk();
             InitChunk(chunk, position, size, parent);
@@ -25,6 +25,11 @@ namespace PotentialRobot.Terrain.Generation
             chunkTransform.localRotation = Quaternion.Euler(s_defaultRotationEuler);
             chunkTransform.position = position;
             chunkTransform.localScale = Vector3.one * size;
+        }
+
+        public void CleanUpChunk(GameObject chunk)
+        {
+            Object.Destroy(chunk);
         }
     }
 }
