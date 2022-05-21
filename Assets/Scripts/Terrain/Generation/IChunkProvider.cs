@@ -4,7 +4,7 @@ namespace PotentialRobot.Terrain.Generation
 {
     public interface IChunkProvider
     {
-        GameObject GetChunk(Vector3 position, float size, Transform parent);
+        GameObject GetChunk(Vector3 position);
         void CleanUpChunk(GameObject chunk);
     }
 }

@@ -7,17 +7,21 @@ namespace PotentialRobot.Terrain.Generation
     {
         private static readonly Vector3 s_defaultRotationEuler = new Vector3(90f, 0f, 0f);
 
+        private readonly float _chunkSize;
+        private readonly Transform _chunkParent;
         private readonly Pool<GameObject> _chunkPool;
 
-        public ChunkProvider()
+        public ChunkProvider(Transform chunkParent, float chunkSize)
         {
+            _chunkParent = chunkParent;
+            _chunkSize = chunkSize;
             _chunkPool = new Pool<GameObject>(CreateNewChunk, ResetChunk);
         }
 
-        public GameObject GetChunk(Vector3 position, float size, Transform parent)
+        public GameObject GetChunk(Vector3 position)
         {
             GameObject chunk = _chunkPool.Lease();
-            InitChunk(chunk, position, size, parent);
+            InitChunk(chunk, position);
             return chunk;
         }
 
@@ -32,13 +36,13 @@ namespace PotentialRobot.Terrain.Generation
             return chunk;
         }
 
-        private void InitChunk(GameObject chunk, Vector3 position, float size, Transform parent)
+        private void InitChunk(GameObject chunk, Vector3 position)
         {
             Transform chunkTransform = chunk.transform;
-            chunkTransform.SetParent(parent);
+            chunkTransform.SetParent(_chunkParent);
             chunkTransform.localRotation = Quaternion.Euler(s_defaultRotationEuler);
             chunkTransform.localPosition = position;
-            chunkTransform.localScale = Vector3.one * size;
+            chunkTransform.localScale = Vector3.one * _chunkSize;
             chunk.SetActive(true);
         }
 

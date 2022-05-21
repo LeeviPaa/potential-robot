@@ -11,7 +11,7 @@ namespace PotentialRobot.Terrain
         [SerializeField]
         private Transform _viewer = null;
 
-        private ChunkController _chunkController;
+        private IChunkController _chunkController;
 
         private void Start()
         {
@@ -20,7 +20,8 @@ namespace PotentialRobot.Terrain
 
         private void Update()
         {
-            _chunkController.UpdateChunkVisibility(_viewer.position);
+            var viewerPosition = new Vector3(_viewer.position.x, 0, _viewer.position.z);
+            _chunkController.UpdateChunkVisibility(viewerPosition);
         }
     }
 }
