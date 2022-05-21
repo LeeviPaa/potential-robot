@@ -152,13 +152,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d578a56b20ae9034dae4027aa129b636, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _acceleration: 0.01
+  _maxSpeed: 0
+  _rotationSpeed: 4
+  _maxVelocity: 100
+  _velocityDamping: 1
+  _downhillAcceleration: 0.01
   _hoverHeight: 1
-  _hoverDamping: 0.2
+  _hoverDamping: 1
   _rotationDamping: 0.5
   _layer:
     serializedVersion: 2
     m_Bits: 64
-  _fallSpeed: 1
+  _gravity: 0.1
   _boardRayPoints:
   - {x: 0.33, y: 0, z: 1.11}
   - {x: 0.33, y: 0, z: -1.11}
