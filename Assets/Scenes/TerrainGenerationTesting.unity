@@ -324,8 +324,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7339f76633f1bc34baf59002888b5dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chunkSize: 1
-  _viewDistance: 5
+  _chunkSize: 10
+  _viewDistance: 200
   _viewer: {fileID: 113356281}
 --- !u!1 &999304457
 GameObject:
