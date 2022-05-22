@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,6 +41,7 @@ public class HoverboardMovement : MonoBehaviour
     private Vector2 _input;
     private Quaternion _targetRotation;
     private Vector3 _velocity;
+    private bool _directionForward;
 
     private void Update()
     {
@@ -56,6 +58,7 @@ public class HoverboardMovement : MonoBehaviour
             _debugGroundAverage.up = avgNormal;
         }
 
+        _directionForward = CalculateForwardSign() >= 0;
         InputMovement();
 
         if (_grounded)
@@ -73,6 +76,14 @@ public class HoverboardMovement : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, _targetRotation, _rotationDamping);
     }
 
+    private float CalculateForwardSign()
+    {
+        Vector3 forwardXZ = new Vector3(transform.forward.x, 0, transform.forward.z);
+
+        Vector3 velocityXZ = new Vector3(_velocity.x, 0, _velocity.z).normalized;
+        return Vector3.Dot(forwardXZ, velocityXZ);
+    }
+
     private void AerialMovement()
     {
         _targetRotation = Quaternion.FromToRotation(transform.up, Vector3.up) * transform.rotation;
@@ -84,9 +95,20 @@ public class HoverboardMovement : MonoBehaviour
     {
         SlopeAcceleration();
 
-        _targetRotation = Quaternion.FromToRotation(transform.up, avgNormal) * transform.rotation;
+        Vector3 forwardXZ = new Vector3(transform.forward.x, 0, transform.forward.z);
+        Vector3 velocityXZ = new Vector3(_velocity.x, 0, _velocity.z);
+
+        if(CalculateForwardSign() < 0)
+            velocityXZ *= -1;
+
+        _targetRotation = 
+            Quaternion.FromToRotation(transform.up, avgNormal)
+            * Quaternion.FromToRotation(forwardXZ, velocityXZ.normalized)
+            * transform.rotation;
 
         transform.position = Vector3.Lerp(transform.position, avgPoint + avgNormal * _hoverHeight, _hoverDamping);
+
+        _velocity.y = 0;
     }
 
     private void SlopeAcceleration()
@@ -100,18 +122,15 @@ public class HoverboardMovement : MonoBehaviour
 
     private void InputMovement()
     {
-        transform.Rotate(new Vector3(0, _input.x * _rotationSpeed, 0));
+        int sign = _directionForward ? 1 : -1;
+        _velocity += transform.right * _input.x * _rotationSpeed * _velocity.magnitude * sign;
+
         _velocity += transform.forward * _acceleration * _input.y;
     }
 
     private void VelocityDrag()
     {
         float speed = _velocity.magnitude;
-    }
-
-    private void BoardTurnAcceleration()
-    {
-        // when board turns, change the velocity to that direction
     }
 
     private bool RaycastGroundAverage(out Vector3 avgPoint, out Vector3 avgNormal)
