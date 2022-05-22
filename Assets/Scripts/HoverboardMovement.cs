@@ -17,6 +17,7 @@ public class HoverboardMovement : MonoBehaviour
     [SerializeField]
     private float _maxVelocity = 100;
     [SerializeField]
+    [Range(0, 0.25f)]
     private float _velocityDamping = 1;
     [SerializeField]
     private float _terminalVelocity = 50;
@@ -50,6 +51,11 @@ public class HoverboardMovement : MonoBehaviour
     private void Update()
     {
         _input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            _velocity += Vector3.up * 20;
+        }
     }
 
     private void FixedUpdate()
@@ -102,19 +108,24 @@ public class HoverboardMovement : MonoBehaviour
         Vector3 forwardXZ = new Vector3(transform.forward.x, 0, transform.forward.z);
         Vector3 velocityXZ = new Vector3(_velocity.x, 0, _velocity.z);
 
-        if(CalculateForwardSign() < 0)
+        if (CalculateForwardSign() < 0)
             velocityXZ *= -1;
 
-        _targetRotation = 
+        _targetRotation =
             Quaternion.FromToRotation(transform.up, avgNormal)
             * Quaternion.FromToRotation(forwardXZ, velocityXZ.normalized)
             * transform.rotation;
+            
+        GroundVelocityY(avgPoint);
+    }
 
+    private void GroundVelocityY(Vector3 avgPoint)
+    {
         float distFromGroundCapped = Mathf.Clamp(Vector3.Distance(avgPoint, transform.position), 0, _hoverHeight * 2);
 
         float deltaHeight = _hoverHeight - distFromGroundCapped;
 
-        if(deltaHeight < 0)
+        if (deltaHeight < 0)
         {
             ApplyGravity(Mathf.Abs(deltaHeight));
         }
@@ -151,7 +162,11 @@ public class HoverboardMovement : MonoBehaviour
 
     private void VelocityDrag()
     {
-        float speed = _velocity.magnitude;
+        _velocity = Vector3.ClampMagnitude(_velocity, _terminalVelocity);
+
+        float percentage = _velocity.magnitude / _terminalVelocity;
+
+        _velocity *= (1 - _velocityDamping * percentage);
     }
 
     private bool RaycastGroundAverage(out Vector3 avgPoint, out Vector3 avgNormal)
