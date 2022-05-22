@@ -19,17 +19,21 @@ public class HoverboardMovement : MonoBehaviour
     [SerializeField]
     private float _velocityDamping = 1;
     [SerializeField]
+    private float _terminalVelocity = 50;
+    [SerializeField]
     private float _downhillAcceleration = 1;
     [SerializeField]
     private float _hoverHeight = 1;
     [SerializeField]
     private float _hoverDamping = 0.25f;
     [SerializeField]
+    private float _hoverForce = 0.25f;
+    [SerializeField]
     private float _rotationDamping = 0.25f;
     [SerializeField]
     private LayerMask _layer;
     [SerializeField]
-    private float _gravity;
+    private float _gravity = 9.81f;
     
     [Header("Debug")]
     [SerializeField]
@@ -88,7 +92,7 @@ public class HoverboardMovement : MonoBehaviour
     {
         _targetRotation = Quaternion.FromToRotation(transform.up, Vector3.up) * transform.rotation;
 
-        _velocity += Vector3.down * _gravity * Time.fixedDeltaTime;
+        ApplyGravity();
     }
 
     private void GroundedMovement(Vector3 avgPoint, Vector3 avgNormal)
@@ -106,9 +110,26 @@ public class HoverboardMovement : MonoBehaviour
             * Quaternion.FromToRotation(forwardXZ, velocityXZ.normalized)
             * transform.rotation;
 
-        transform.position = Vector3.Lerp(transform.position, avgPoint + avgNormal * _hoverHeight, _hoverDamping);
+        float distFromGroundCapped = Mathf.Clamp(Vector3.Distance(avgPoint, transform.position), 0, _hoverHeight * 2);
 
-        _velocity.y = 0;
+        float deltaHeight = _hoverHeight - distFromGroundCapped;
+
+        if(deltaHeight < 0)
+        {
+            ApplyGravity(Mathf.Abs(deltaHeight));
+        }
+        else
+        {
+            _velocity.y = deltaHeight;
+        }
+    }
+
+    private void ApplyGravity(float maxDelta = float.MaxValue)
+    {
+        _velocity.y -= _gravity * Time.fixedDeltaTime;
+
+        _velocity.y = Mathf.Clamp(_velocity.y, -_terminalVelocity, _terminalVelocity);
+        _velocity.y = Mathf.Clamp(_velocity.y, -maxDelta, maxDelta);
     }
 
     private void SlopeAcceleration()
@@ -169,5 +190,7 @@ public class HoverboardMovement : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawSphere(pointInWorld, 0.2f);
         }
+
+        Gizmos.DrawLine(transform.position, transform.position - transform.up * _hoverHeight);
     }
 }
