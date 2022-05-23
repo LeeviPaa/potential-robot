@@ -20,6 +20,10 @@ namespace PotentialRobot.Terrain
 
         public bool IsVisible(Vector3 chunkPosition, Vector3 viewerPosition)
         {
+            // Ignore distance on y-axis
+            chunkPosition.y = 0;
+            viewerPosition.y = 0;
+
             Vector3 viewerToChunkCenter = chunkPosition - viewerPosition;
             float distanceToChunkCenterSqr = Vector3.SqrMagnitude(viewerToChunkCenter);
             return distanceToChunkCenterSqr < _viewDistanceSqr;
