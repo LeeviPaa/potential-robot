@@ -16,7 +16,7 @@ namespace PotentialRobot.Terrain
 
         public ChunkController(Transform chunkParent, float chunkSize, float viewDistance, float slopeAngleDeg)
         {
-            _chunkProvider = new ChunkProvider(chunkParent, chunkSize);
+            _chunkProvider = new ChunkProvider(chunkParent, chunkSize, slopeAngleDeg);
             _visibilityHelper = new ChunkVisibilityHelper(chunkSize, viewDistance);
             _positionHelper = new ChunkPositionHelper(chunkSize, slopeAngleDeg);
             _chunks = new Dictionary<ChunkCoordinates, GameObject>();
