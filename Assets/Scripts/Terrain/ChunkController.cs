@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using PotentialRobot.Terrain.Generation;
 using UnityEngine;
@@ -16,10 +17,33 @@ namespace PotentialRobot.Terrain
 
         public ChunkController(Transform chunkParent, float chunkSize, float viewDistance, float slopeAngleDeg)
         {
+            ThrowIfInvalidSettings(chunkSize, viewDistance, slopeAngleDeg);
+
             _chunkProvider = new ChunkProvider(chunkParent, chunkSize, slopeAngleDeg);
             _visibilityHelper = new ChunkVisibilityHelper(chunkSize, viewDistance);
             _positionHelper = new ChunkPositionHelper(chunkSize, slopeAngleDeg);
             _chunks = new Dictionary<ChunkCoordinates, GameObject>();
+        }
+
+        private void ThrowIfInvalidSettings(float chunkSize, float viewDistance, float slopeAngleDeg)
+        {
+            if (chunkSize < TerrainConstants.MinChunkSize || chunkSize > TerrainConstants.MaxChunkSize)
+            {
+                throw new ArgumentException(
+                    $"Value of {nameof(chunkSize)} ({chunkSize}) must be from {TerrainConstants.MinChunkSize} to {TerrainConstants.MaxChunkSize}");
+            }
+
+            if (viewDistance < TerrainConstants.MinViewDistance || viewDistance > TerrainConstants.MaxViewDistance)
+            {
+                throw new ArgumentException(
+                    $"Value of {nameof(viewDistance)} ({viewDistance}) must be from {TerrainConstants.MinViewDistance} to {TerrainConstants.MaxViewDistance}");
+            }
+
+            if (slopeAngleDeg < TerrainConstants.MinSlopeAngleDeg || slopeAngleDeg > TerrainConstants.MaxSlopeAngleDeg)
+            {
+                throw new ArgumentException(
+                    $"Value of {nameof(slopeAngleDeg)} ({slopeAngleDeg}) must be from {TerrainConstants.MinSlopeAngleDeg} to {TerrainConstants.MaxSlopeAngleDeg}");
+            }
         }
 
         public void UpdateChunkVisibility(Vector3 viewerPosition)

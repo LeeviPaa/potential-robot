@@ -5,13 +5,15 @@ namespace PotentialRobot.Terrain
     public class TerrainController : MonoBehaviour
     {
         [SerializeField]
-        private float _chunkSize = 1f;
-        [SerializeField]
-        private float _viewDistance = 5f;
-        [SerializeField]
         private Transform _viewer = null;
         [SerializeField]
-        [Range(0, 89)]
+        [Range(TerrainConstants.MinChunkSize, TerrainConstants.MaxChunkSize)]
+        private float _chunkSize = 1f;
+        [SerializeField]
+        [Range(TerrainConstants.MinViewDistance, TerrainConstants.MaxViewDistance)]
+        private float _viewDistance = 5f;
+        [SerializeField]
+        [Range(TerrainConstants.MinSlopeAngleDeg, TerrainConstants.MaxSlopeAngleDeg)]
         private float _slopeAngleDeg = 30f;
 
         private IChunkController _chunkController;
