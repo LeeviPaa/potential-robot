@@ -42,11 +42,14 @@ namespace PotentialRobot.Main
                 if (_activeCanvases[i] == canvas)
                 {
                     _activeCanvases.RemoveAt(i);
-                    if (canvas.transform.parent && canvas.transform.parent.gameObject.activeSelf && canvas.transform.parent == transform)
+                    if (canvas != null)
                     {
-                        canvas.transform.SetParent(null);
+                        if (canvas.transform.parent && transform.parent == transform)
+                        {
+                            canvas.transform.SetParent(null);
+                        }
+                        canvas.CanvasComponent.worldCamera = null;
                     }
-                    canvas.CanvasComponent.worldCamera = null;
                     return;
                 }
             }
