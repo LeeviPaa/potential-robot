@@ -14,11 +14,11 @@ namespace PotentialRobot.Terrain
 
         private const string ChunkNameFormat = "Chunk [{0},{1}]";
 
-        public ChunkController(Transform chunkParent, float chunkSize, float viewDistance)
+        public ChunkController(Transform chunkParent, float chunkSize, float viewDistance, float slopeAngleDeg)
         {
             _chunkProvider = new ChunkProvider(chunkParent, chunkSize);
             _visibilityHelper = new ChunkVisibilityHelper(chunkSize, viewDistance);
-            _positionHelper = new ChunkPositionHelper(chunkSize);
+            _positionHelper = new ChunkPositionHelper(chunkSize, slopeAngleDeg);
             _chunks = new Dictionary<ChunkCoordinates, GameObject>();
         }
 
