@@ -37,19 +37,20 @@ namespace PotentialRobot.Main
 
         public void UnregisterCanvas(OverlayCanvas canvas)
         {
+            if (canvas == null)
+            {
+                return;
+            }
             for (int i = 0; i < _activeCanvases.Count; i++)
             {
                 if (_activeCanvases[i] == canvas)
                 {
                     _activeCanvases.RemoveAt(i);
-                    if (canvas != null)
+                    if (canvas.transform.parent != null && canvas.transform.parent == transform)
                     {
-                        if (canvas.transform.parent && transform.parent == transform)
-                        {
-                            canvas.transform.SetParent(null);
-                        }
-                        canvas.CanvasComponent.worldCamera = null;
+                        canvas.transform.SetParent(null);
                     }
+                    canvas.CanvasComponent.worldCamera = null;
                     return;
                 }
             }
