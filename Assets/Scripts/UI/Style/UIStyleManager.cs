@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PotentialRobot.UI.ColorPalettes;
 using UnityEngine;
 
 namespace PotentialRobot.UI.Style
@@ -32,15 +33,13 @@ namespace PotentialRobot.UI.Style
 
             var references = Resources.LoadAll("", typeof(IStyleReference));
             if (Styles == null)
-            {
-                Debug.LogError("FAILED TO LOAD UI STYLE REFERENCES!");
                 return;
-            }
             foreach (IStyleReference reference in references)
             {
                 Styles.Add(reference, reference.Default);
                 AddToStyleReferences(reference.Default, reference);
             }
+            ColorPaletteManager.Instance.OnPaletteChanged += OnPaletteChanged;
         }
 
         private void AddToStyleReferences(IStyle style, IStyleReference reference)
@@ -108,6 +107,17 @@ namespace PotentialRobot.UI.Style
                 return;
             var components = Components[reference];
             foreach (var c in components) c.Apply(style);
+        }
+
+        public void OnPaletteChanged(ColorPalette palette)
+        {
+            foreach(var reference in Styles.Keys)
+            {
+                var style = Styles[reference];
+                var r = style as IUseColorPalette;
+                if (r != null && r.Palette == palette)
+                    UpdateStyle(reference, Styles[reference]);
+            }
         }
     }
 }

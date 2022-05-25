@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: UIStyle_TMProText_Title
   m_EditorClassIdentifier: 
   <Font>k__BackingField: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  <FontSize>k__BackingField: 64
-  <FontColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <FontSize>k__BackingField: 32
+  <Palette>k__BackingField: {fileID: 11400000, guid: ffbdd9069dcf616409052d20b8987ebb, type: 2}
+  _fontColor: 0
