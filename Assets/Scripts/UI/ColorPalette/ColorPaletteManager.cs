@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using PotentialRobot.UI.Style;
 using UnityEngine;
 
 namespace PotentialRobot.UI.ColorPalettes
@@ -7,7 +6,6 @@ namespace PotentialRobot.UI.ColorPalettes
     public class ColorPaletteManager
     {
         private Dictionary<ColorPalette, List<Color>> _palettes;
-        private Dictionary<ColorPalette, IStyle> _styles; 
         private static ColorPaletteManager _instance;
         public static ColorPaletteManager Instance => GetInstance();
         private static ColorPaletteManager GetInstance()
@@ -62,6 +60,6 @@ namespace PotentialRobot.UI.ColorPalettes
             CopyColors(palette);
             OnPaletteChanged?.Invoke(palette);
         }
-
+        
     }
 }

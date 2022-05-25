@@ -21,16 +21,19 @@ namespace PotentialRobot.UI.Style
         public abstract void Apply(IStyle style);
 
         public void Subscribe(IStyleComponent component)
-        => UIStyleManager.Instance.Subscribe(component);
+            => UIStyleManager.Instance.Subscribe(component);
 
         public void Unsubscribe(IStyleComponent component)
-        => UIStyleManager.Instance.Unsubscribe(component);
+            => UIStyleManager.Instance.Unsubscribe(component);
 
         public void OnValidate()
         {
-            if (_target == null) _target = GetComponent<T>();
-            if (RectTransform == null) RectTransform = GetComponent<RectTransform>();
-            if (_target != null && _reference != null) UIStyleManager.Instance.OnValidateApplyStyle(this, Reference);
+            if (_target == null)
+                _target = GetComponent<T>();
+            if (RectTransform == null)
+                RectTransform = GetComponent<RectTransform>();
+            if (_target != null && _reference != null)
+                UIStyleManager.Instance.OnValidateApplyStyle(this, Reference);
         }
     }
 }

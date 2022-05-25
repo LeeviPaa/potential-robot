@@ -8,8 +8,6 @@ namespace PotentialRobot.UI.ColorPalettes
     public class ColorPalette : ScriptableObject, IColorPalette
     {
         [field: SerializeField]
-        public string PaletteType { get; private set; }
-        [field: SerializeField]
         public List<Color> Colors { get; private set; }
 
         public void OnValidate()
