@@ -48,7 +48,10 @@ namespace PotentialRobot.UI.ColorPalettes
         {
             if (palette == null)
                 return;
-            _palettes[palette].Clear();
+            if (_palettes[palette] == null)
+                _palettes[palette] = new List<Color>();
+            else
+                _palettes[palette].Clear();
             for (var i = 0; i < palette.Colors.Count; ++i)
             {
                 _palettes[palette].Add(palette.Colors[i]);
