@@ -7,6 +7,7 @@ namespace PotentialRobot.Localization
     public class LocalizationManager
     {
         public const string c_currentLanguageKey = "CurrentLanguage";
+        public const string c_defaultLanguage = "English";
         private static LocalizationManager _instance;
         public static LocalizationManager Instance
         {
@@ -29,8 +30,8 @@ namespace PotentialRobot.Localization
 
         public void Initialize()
         {
-            if (PlayerPrefs.HasKey("CurrentLanguage"))
-                CurrentLanguage = PlayerPrefs.GetString("CurrentLanguage");
+            if (PlayerPrefs.HasKey(c_currentLanguageKey))
+                CurrentLanguage = PlayerPrefs.GetString(c_currentLanguageKey);
             else
                 SetFirstLanguage();
 
@@ -39,8 +40,8 @@ namespace PotentialRobot.Localization
 
         private void SetFirstLanguage()
         {
-            CurrentLanguage = "English";
-            PlayerPrefs.SetString("CurrentLanguage", CurrentLanguage);
+            CurrentLanguage = c_defaultLanguage;
+            PlayerPrefs.SetString(c_currentLanguageKey, CurrentLanguage);
         }
 
         public void LoadLocalization(string language)
@@ -57,10 +58,11 @@ namespace PotentialRobot.Localization
 
         public void LoadLanguageInfo(string language)
         {
-            var locAsset = Resources.Load<LocalizationAsset>($"Localization/LocalizationAsset_{language}.asset");
+            var assetPath = GetLanguageAssetPath(language);
+            var locAsset = Resources.Load<LocalizationAsset>(assetPath);
             if (locAsset == null)
             {
-                Debug.LogError("Localization error: failed to load localization file.");
+                Debug.LogError($"Localization error: failed to load localization file {assetPath}.");
                 return;
             }
 
@@ -69,6 +71,11 @@ namespace PotentialRobot.Localization
                 AddLocalizations(locAsset);
             else
                 ReplaceLocalizations(locAsset);
+        }
+
+        private string GetLanguageAssetPath(string language)
+        {
+            return $"Localization/LocalizationAsset_{language}.asset";
         }
 
         public void AddLocalizations(LocalizationAsset asset)
