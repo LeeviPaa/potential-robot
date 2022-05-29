@@ -273,12 +273,6 @@ namespace PotentialRobot.Localization.Editor
 
         #endregion
 
-        private void Awake()
-        {
-            if (!_isInitialized)
-                Initialize();
-        }
-
         private void ApplyChanges()
         {
             foreach (var serializedObject in _assetsSO)
