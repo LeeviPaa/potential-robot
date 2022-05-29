@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-using System;
 
 namespace PotentialRobot.Localization.Editor
 {
@@ -18,7 +17,6 @@ namespace PotentialRobot.Localization.Editor
 
         private List<LocalizationListElement> _elements;
         private List<LocalizationListElement> _searchResult;
-        private ListElementComparer _comparer = new ListElementComparer();
 
         private bool _isInitialized;
         private int _currentPage;
@@ -55,7 +53,7 @@ namespace PotentialRobot.Localization.Editor
 
         private void StartRecordingUndo()
         {
-            var undoObjects = new List<UnityEngine.Object>();
+            var undoObjects = new List<Object>();
             undoObjects.Add(_keyAsset);
             foreach (var asset in _assets)
                 undoObjects.Add(asset);
@@ -127,6 +125,7 @@ namespace PotentialRobot.Localization.Editor
             EditorUtility.DisplayProgressBar("Initializing Localization Editor", "Serializing Properties", 0f);
             float progress = 0f;
             _elements = new List<LocalizationListElement>(_keyAsset.Keys.Count);
+            _elements.Clear();
 
             _keyAssetSO = new SerializedObject(_keyAsset);
             var keysProperty = _keyAssetSO.FindProperty("_keys");
@@ -145,23 +144,14 @@ namespace PotentialRobot.Localization.Editor
             var count = _keyAsset.Keys.Count;
             for (var i = 0; i < count; ++i)
             {
-                progress = 1f/(float)count;
-                if (i % 100 == 0)
-                    EditorUtility.DisplayProgressBar("Initializing Localization Editor", $"Serializing Properties {i+1}/{count}", progress);
-                var entries = new List<SerializedProperty>();
-                for (var j = 0; j < _assetsSO.Count; ++j)
+                var element = new LocalizationListElement
                 {
-                    entries.Add(translations[j].GetArrayElementAtIndex(i));
-                }
-                var item = new LocalizationListElement()
-                {
-                    KeyProperty = keysProperty.GetArrayElementAtIndex(i),
-                    EntryProperties = entries
+                    Key = _keyAsset.Keys[i],
+                    Index = i
                 };
-                _elements.Add(item);
+                _elements.Add(element);
             }
-            EditorUtility.DisplayProgressBar("Initializing Localization Editor", "Sorting lists, finishing up...", 100f);
-            _elements.Sort(_comparer);
+
             EditorUtility.ClearProgressBar();
         }
 
@@ -197,7 +187,7 @@ namespace PotentialRobot.Localization.Editor
                     _searchResult = _elements;
                     foreach (var term in searchTerms)
                     {
-                        _searchResult = _searchResult.FindAll(s => s.KeyProperty.stringValue.ToLowerInvariant().Contains(term));
+                        _searchResult = _searchResult.FindAll(s => s.Key.ToLowerInvariant().Contains(term));
                     }
                     _searchTerm = newTerm;
                 }
@@ -232,20 +222,17 @@ namespace PotentialRobot.Localization.Editor
         {
             EditorGUILayout.BeginHorizontal();
             {
-                if (element.KeyProperty == null)
+                var keyProperty = _keyAssetSO.FindProperty("_keys").GetArrayElementAtIndex(element.Index);
+                element.Key = EditorGUILayout.TextField(keyProperty.stringValue);
+                keyProperty.stringValue = element.Key;
+                foreach (var e in _assetsSO)
                 {
-                    ReinitializeListItems();
-                    Repaint();
-                    return;
-                }
-                element.KeyProperty.stringValue = EditorGUILayout.TextField(element.KeyProperty.stringValue);
-                
-                foreach (var e in element.EntryProperties)
-                {
-                    e.FindPropertyRelative("Key").stringValue = element.KeyProperty.stringValue;
-                    var translation = e.FindPropertyRelative("Text");
+                    var property = e.FindProperty("_translations").GetArrayElementAtIndex(element.Index);
+                    property.FindPropertyRelative("Key").stringValue = element.Key;
+                    var translation = property.FindPropertyRelative("Text");
                     translation.stringValue = EditorGUILayout.TextArea(translation.stringValue);
                 }
+                _elements[element.Index] = element;
             }
             EditorGUILayout.EndHorizontal();
         }
