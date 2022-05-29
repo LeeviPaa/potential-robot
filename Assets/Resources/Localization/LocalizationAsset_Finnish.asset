@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe553691afc055c4ca9ad7efd8e400f8, type: 3}
-  m_Name: LocalizationAsset_English
+  m_Name: LocalizationAsset_Finnish
   m_EditorClassIdentifier: 
   _languageName: English
   _translations:

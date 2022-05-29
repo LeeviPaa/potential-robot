@@ -16,12 +16,15 @@ namespace PotentialRobot.Localization.Editor
         private string _searchTerm = string.Empty;
 
         private List<LocalizationListElement> _elements;
-        private List<LocalizationListElement> _searchResult;
+        private List<LocalizationListElement> _validResults;
 
         private bool _isInitialized;
         private int _currentPage;
         private int _itemCountOnPage = 20;
+        private CachedLocalizationEntry[] _cachedEntries;
         private Vector2 _scroll;
+        private System.Action<int> _onButtonPressed;
+        private int _onButtonPressedIndex;
 
         [MenuItem("PotentialRobot/LocalizationEditor")]
         public static void OpenWindow()
@@ -152,25 +155,29 @@ namespace PotentialRobot.Localization.Editor
                 };
                 _elements.Add(element);
             }
+            _validResults = null;
         }
 
         private void OnGUIDrawKeyEditor()
         {
             if (_elements == null || _keyAsset.Keys.Count != _elements.Count)
                 ReinitializeListItems();
-
-            DrawSearch();
-
-            var elements = string.IsNullOrEmpty(_searchTerm) || _searchResult == null ? _elements : _searchResult;
-
-            EditorGUILayout.BeginVertical();
+            EditorGUI.BeginChangeCheck();
             {
-                DrawPage(elements);
+                DrawSearch();
+                EditorGUILayout.BeginVertical();
+                {
+                    DrawPage();
+                }
+                DrawPageControls(_validResults.Count);
+                EditorGUILayout.EndVertical();
             }
-            DrawPageControls(elements.Count);
-            EditorGUILayout.EndVertical();
-
-            ApplyChanges();
+            if (EditorGUI.EndChangeCheck())
+            {
+                ApplyChanges();
+                _onButtonPressed?.Invoke(_onButtonPressedIndex);
+                _onButtonPressed = null;
+            }
         }
 
         private void DrawSearch()
@@ -179,16 +186,20 @@ namespace PotentialRobot.Localization.Editor
             {
                 EditorGUILayout.LabelField("Search:");
                 var newTerm = EditorGUILayout.TextField(_searchTerm);
-                if (_searchTerm != newTerm)
+                var changed = _searchTerm != newTerm;
+                if (changed)
+                    _currentPage = 0;
+                if (_validResults == null || changed)
                 {
-                    var lower = newTerm.ToLowerInvariant();
                     string[] searchTerms = newTerm.ToLowerInvariant().Split(c_searchSplitter);
-                    _searchResult = _elements;
+                    _validResults = _elements;
                     foreach (var term in searchTerms)
                     {
-                        _searchResult = _searchResult.FindAll(s => s.Key.ToLowerInvariant().Contains(term));
+                        _validResults = _validResults.FindAll(s => s.Key.ToLowerInvariant().Contains(term));
                     }
                     _searchTerm = newTerm;
+                    var pageStartIndex = GetPageStartIndex();
+                    CacheEntries(pageStartIndex, GetPageItemCount(pageStartIndex, _validResults.Count));
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -199,41 +210,89 @@ namespace PotentialRobot.Localization.Editor
             _currentPage = Mathf.Clamp(_currentPage, 0, elementsCount / _itemCountOnPage);
         }
 
-        private int GetPageStartIndex() => _currentPage * _itemCountOnPage;
-        private int GetPageItemCount(int startIndex, int elementsCount) => Mathf.Min(_itemCountOnPage, elementsCount - startIndex);
+        private int GetPageStartIndex()
+        {
+            return _currentPage * _itemCountOnPage;
+        }
+        private int GetPageItemCount(int startIndex, int elementsCount)
+            => Mathf.Min(_itemCountOnPage, elementsCount - startIndex);
 
-        private void DrawPage(List<LocalizationListElement> elements)
+        private void DrawPage()
         {
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             {
-                ValidatePageIndex(elements.Count);
-                int startIndex = GetPageStartIndex();
-                int itemCount = GetPageItemCount(startIndex, elements.Count);
-                for (var i = startIndex; i < startIndex + itemCount; ++i)
+                if (_cachedEntries == null || _cachedEntries.Length <= 0)
                 {
-                    DrawEntry(elements[i]);
+                    EditorGUILayout.LabelField("No entries found.");
+                }
+                else
+                {
+                    for (var i = 0; i < _cachedEntries.Length; ++i)
+                    {
+                        DrawEntry(_cachedEntries[i]);
+                    }
                 }
             }
+            EditorGUILayout.LabelField(_cachedEntries?.Length.ToString());
             EditorGUILayout.EndScrollView();
         }
 
-        private void DrawEntry(LocalizationListElement element)
+        private void CacheEntries(int startIndex, int count)
+        {
+            if (count <= 0)
+            {
+                _cachedEntries = null;
+                return;
+            }
+            _cachedEntries = new CachedLocalizationEntry[count];
+            for (var i = 0; i < count; ++i)
+            {
+                var assetsCount = _assetsSO.Count;
+                var entryIndex = _validResults[startIndex + i].Index;
+                SerializedProperty[] keys = new SerializedProperty[_assetsSO.Count];
+                SerializedProperty[] texts = new SerializedProperty[_assetsSO.Count];
+                for (var j = 0; j < _assetsSO.Count; ++j)
+                {
+                    var translationsProperty = _assetsSO[j].FindProperty("_translations");
+                    var entryProperty = translationsProperty.GetArrayElementAtIndex(entryIndex);
+                    keys[j] = entryProperty.FindPropertyRelative("Key");
+                    texts[j] = entryProperty.FindPropertyRelative("Text");
+                }
+                CachedLocalizationEntry entry = new CachedLocalizationEntry
+                {
+                    Index = entryIndex,
+                    Key = _keyAssetSO.FindProperty("_keys").GetArrayElementAtIndex(entryIndex),
+                    Keys = keys,
+                    Texts = texts
+                };
+                _cachedEntries[i] = entry;
+            }
+        }
+
+        private void DrawEntry(CachedLocalizationEntry element)
         {
             EditorGUILayout.BeginHorizontal();
             {
                 DrawRemoveButton(element.Index);
                 DrawAddButton(element.Index);
-                var keyProperty = _keyAssetSO.FindProperty("_keys").GetArrayElementAtIndex(element.Index);
-                element.Key = EditorGUILayout.TextField(keyProperty.stringValue);
-                keyProperty.stringValue = element.Key;
-                foreach (var e in _assetsSO)
+                var previousValue = element.Key.stringValue;
+                var value = EditorGUILayout.TextField(previousValue);
+                if (value != previousValue)
                 {
-                    var property = e.FindProperty("_translations").GetArrayElementAtIndex(element.Index);
-                    property.FindPropertyRelative("Key").stringValue = element.Key;
-                    var translation = property.FindPropertyRelative("Text");
-                    translation.stringValue = EditorGUILayout.TextArea(translation.stringValue);
+                    element.Key.stringValue = value;
+                    for (var i = 0; i < element.Keys.Length; ++i)
+                        element.Keys[i].stringValue = value;
+                    var replace = _elements[element.Index];
+                    replace.Key = value;
+                    _elements[element.Index] = replace;
                 }
-                _elements[element.Index] = element;
+
+                foreach (var e in element.Texts)
+                {
+                    var text = EditorGUILayout.TextArea(e.stringValue);
+                    if (text != e.stringValue)
+                        e.stringValue = text;
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -241,7 +300,10 @@ namespace PotentialRobot.Localization.Editor
         private void DrawAddButton(int index)
         {
             if (GUILayout.Button("+", GUILayout.Width(c_smallSizeButton)))
-                AddKey(index);
+            {
+                _onButtonPressed = AddKey;
+                _onButtonPressedIndex = index;
+            }
         }
 
         private void DrawRemoveButton(int index)
@@ -249,32 +311,54 @@ namespace PotentialRobot.Localization.Editor
             if (GUILayout.Button("-", GUILayout.Width(c_smallSizeButton)))
             {
                 if (EditorUtility.DisplayDialog("Are you sure?", $"Do you want to remove entry {index} from the list?", "Yes", "No"))
-                    RemoveKey(index);
+                {
+                    _onButtonPressed = RemoveKey;
+                    _onButtonPressedIndex = index;
+                }
             }
         }
 
         private void DrawPageControls(int elementsCount)
         {
+            var newPage = _currentPage;
             EditorGUILayout.BeginHorizontal();
             {
-                GUI.enabled = _currentPage > 0;
+                GUI.enabled = newPage > 0;
                 if (GUILayout.Button("Previous"))
-                    _currentPage = Mathf.Max(_currentPage - 1, 0);
+                    newPage = Mathf.Max(newPage - 1, 0);
                 GUI.enabled = true;
-                _currentPage = Mathf.Clamp(EditorGUILayout.IntField("Page: ", _currentPage + 1) - 1, 0, _elements.Count / _itemCountOnPage);
-                EditorGUILayout.LabelField($"/ {Mathf.CeilToInt(_elements.Count / (float)_itemCountOnPage)}");
-                GUI.enabled = (_currentPage + 1) * _itemCountOnPage < elementsCount;
+                newPage = Mathf.Clamp(EditorGUILayout.IntField("Page: ", newPage + 1) - 1, 0, elementsCount / _itemCountOnPage);
+                EditorGUILayout.LabelField($"/ {Mathf.CeilToInt(elementsCount / (float)_itemCountOnPage)}");
+                GUI.enabled = (newPage + 1) * _itemCountOnPage < elementsCount;
                 if (GUILayout.Button("Next"))
-                    _currentPage = Mathf.Min(_currentPage + 1, elementsCount);
+                    newPage = Mathf.Min(newPage + 1, elementsCount);
                 GUI.enabled = true;
             }
             EditorGUILayout.EndHorizontal();
+
+            if (_currentPage != newPage)
+            {
+                _onButtonPressed = ChangePage;
+                _onButtonPressedIndex = newPage;
+            }
+        }
+
+        private void ChangePage(int newPage)
+        {
+            _currentPage = newPage;
+            int startIndex = GetPageStartIndex();
+            CacheEntries(startIndex, GetPageItemCount(startIndex, _validResults.Count));
         }
 
         #endregion
 
         private void ApplyChanges()
         {
+            if (_assetsSO == null || _keyAssetSO == null)
+            {
+                Initialize();
+                return;
+            }
             foreach (var serializedObject in _assetsSO)
                 serializedObject.ApplyModifiedProperties();
             _keyAssetSO.ApplyModifiedProperties();

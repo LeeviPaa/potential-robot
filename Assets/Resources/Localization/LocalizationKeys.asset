@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: LocalizationKeys
   m_EditorClassIdentifier: 
   _keys:
-  - LOC_START
+  - 
   - LOC_EXIT
-  - LOC_SETTINGS
   - LOC_PAUSE
+  - LOC_SELECT
   - LOC_START
   - LOC_START
+  - EGG
   - LOC_START
   - LOC_START
   - LOC_START
@@ -30,8 +31,13 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - LOC_VALUE
+  - LOC_VALUEPALUE
+  - 
+  - 
   - LOC_START
   - LOC_START
+  - 
   - LOC_START
   - LOC_START
   - LOC_START
@@ -189,6 +195,7 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - 
   - LOC_START
   - LOC_START
   - LOC_START
@@ -8600,6 +8607,7 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - LOc
   - LOC_START
   - LOC_START
   - LOC_START
@@ -9677,6 +9685,8 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - 4343143
+  - HALOO
   - LOC_START
   - LOC_START
   - LOC_START
@@ -9697,6 +9707,7 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - LOC_VALUE
   - LOC_START
   - LOC_START
   - LOC_START
@@ -9935,6 +9946,15 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   - LOC_START
   - LOC_START
   - LOC_START
@@ -9972,44 +9992,20 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - LOC_EDADWDAWDWA
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
+  - 
+  - LOC_VALUE
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
+  - dwadawdw
   - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
+  - VALUE
+  - KATO
