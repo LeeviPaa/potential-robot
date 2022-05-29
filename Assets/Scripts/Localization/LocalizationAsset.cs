@@ -7,9 +7,23 @@ namespace PotentialRobot.Localization
     [CreateAssetMenu(menuName = "Localization/Localization Asset", fileName = "LocalizationAsset_languageName.asset")]
     public class LocalizationAsset : ScriptableObject
     {
-        [field: SerializeField]
-        public string Language { get; private set; }
-        [field: SerializeField]
-        public List<(string Key, string Text)> Translations { get; private set; }
+        [System.Serializable]
+        public struct Translation
+        {
+            public string Key;
+            public string Text;
+            public Translation(string key, string text)
+            {
+                Key = key;
+                Text = text;
+            }
+        }
+
+        [SerializeField]
+        private string _languageName;
+        public string LanguageName => _languageName;
+        [SerializeField, NonReorderable]
+        private List<Translation> _translations = new List<Translation>();
+        public List<Translation> Translations => _translations;
     }
 }
