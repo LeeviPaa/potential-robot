@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _keys:
   - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
+  - LOC_EXIT
+  - LOC_SETTINGS
+  - LOC_PAUSE
   - LOC_START
   - LOC_START
   - LOC_START

@@ -87,6 +87,7 @@ namespace PotentialRobot.Localization.Editor
             StopRecordingUndo();
             SetObjectsDirty();
             Repaint();
+            ReinitializeListItems();
         }
 
         private void RemoveKey(int index)
@@ -100,6 +101,7 @@ namespace PotentialRobot.Localization.Editor
             StopRecordingUndo();
             SetObjectsDirty();
             Repaint();
+            ReinitializeListItems();
         }
 
         public void OnProjectChange()
@@ -122,8 +124,6 @@ namespace PotentialRobot.Localization.Editor
 
         private void ReinitializeListItems()
         {
-            EditorUtility.DisplayProgressBar("Initializing Localization Editor", "Serializing Properties", 0f);
-            float progress = 0f;
             _elements = new List<LocalizationListElement>(_keyAsset.Keys.Count);
             _elements.Clear();
 
@@ -141,6 +141,7 @@ namespace PotentialRobot.Localization.Editor
                 _assetsSO.Add(so);
                 translations.Add(so.FindProperty("_translations"));
             }
+            
             var count = _keyAsset.Keys.Count;
             for (var i = 0; i < count; ++i)
             {
@@ -151,8 +152,6 @@ namespace PotentialRobot.Localization.Editor
                 };
                 _elements.Add(element);
             }
-
-            EditorUtility.ClearProgressBar();
         }
 
         private void OnGUIDrawKeyEditor()
@@ -197,7 +196,7 @@ namespace PotentialRobot.Localization.Editor
         
         private void ValidatePageIndex(int elementsCount)
         {
-            _currentPage = GetPageStartIndex() < elementsCount ? Mathf.Max(_currentPage, 0) : 0; 
+            _currentPage = Mathf.Clamp(_currentPage, 0, elementsCount / _itemCountOnPage);
         }
 
         private int GetPageStartIndex() => _currentPage * _itemCountOnPage;
@@ -210,7 +209,7 @@ namespace PotentialRobot.Localization.Editor
                 ValidatePageIndex(elements.Count);
                 int startIndex = GetPageStartIndex();
                 int itemCount = GetPageItemCount(startIndex, elements.Count);
-                for (var i = startIndex; i < itemCount; ++i)
+                for (var i = startIndex; i < startIndex + itemCount; ++i)
                 {
                     DrawEntry(elements[i]);
                 }
@@ -222,6 +221,8 @@ namespace PotentialRobot.Localization.Editor
         {
             EditorGUILayout.BeginHorizontal();
             {
+                DrawRemoveButton(element.Index);
+                DrawAddButton(element.Index);
                 var keyProperty = _keyAssetSO.FindProperty("_keys").GetArrayElementAtIndex(element.Index);
                 element.Key = EditorGUILayout.TextField(keyProperty.stringValue);
                 keyProperty.stringValue = element.Key;
@@ -246,7 +247,10 @@ namespace PotentialRobot.Localization.Editor
         private void DrawRemoveButton(int index)
         {
             if (GUILayout.Button("-", GUILayout.Width(c_smallSizeButton)))
-                RemoveKey(index);
+            {
+                if (EditorUtility.DisplayDialog("Are you sure?", $"Do you want to remove entry {index} from the list?", "Yes", "No"))
+                    RemoveKey(index);
+            }
         }
 
         private void DrawPageControls(int elementsCount)
@@ -257,7 +261,8 @@ namespace PotentialRobot.Localization.Editor
                 if (GUILayout.Button("Previous"))
                     _currentPage = Mathf.Max(_currentPage - 1, 0);
                 GUI.enabled = true;
-                EditorGUILayout.LabelField($"Page {_currentPage + 1}");
+                _currentPage = Mathf.Clamp(EditorGUILayout.IntField("Page: ", _currentPage + 1) - 1, 0, _elements.Count / _itemCountOnPage);
+                EditorGUILayout.LabelField($"/ {Mathf.CeilToInt(_elements.Count / (float)_itemCountOnPage)}");
                 GUI.enabled = (_currentPage + 1) * _itemCountOnPage < elementsCount;
                 if (GUILayout.Button("Next"))
                     _currentPage = Mathf.Min(_currentPage + 1, elementsCount);
@@ -267,6 +272,12 @@ namespace PotentialRobot.Localization.Editor
         }
 
         #endregion
+
+        private void Awake()
+        {
+            if (!_isInitialized)
+                Initialize();
+        }
 
         private void ApplyChanges()
         {

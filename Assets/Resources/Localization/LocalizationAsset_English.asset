@@ -16,11 +16,11 @@ MonoBehaviour:
   _translations:
   - Key: LOC_START
     Text: Start
-  - Key: LOC_START
+  - Key: LOC_EXIT
+    Text: Exit
+  - Key: LOC_SETTINGS
     Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
+  - Key: LOC_PAUSE
     Text: Start
   - Key: LOC_START
     Text: Start
