@@ -12,19 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe553691afc055c4ca9ad7efd8e400f8, type: 3}
   m_Name: LocalizationAsset_Finnish
   m_EditorClassIdentifier: 
-  _languageName: English
+  _languageName: Finnish
   _translations:
-  - Key: 
+  - Key: LOC VAL
     Text: 
   - Key: LOC_EXIT
     Text: Exit
-  - Key: LOC_PAUSE
+  - Key: 
     Text: 
   - Key: LOC_SELECT
     Text: Select
   - Key: LOC_START
     Text: Start
-  - Key: LOC_START
+  - Key: "LOC_START VALUE LUIGIAD LAWKD\xD6LWAKD\xD6LKAW\xD6LD"
     Text: Start
   - Key: EGG
     Text: Start
@@ -34,25 +34,25 @@ MonoBehaviour:
     Text: Start
   - Key: LOC_START
     Text: Start
-  - Key: LOC_START
+  - Key: LOC_EDITOR
     Text: Start
-  - Key: LOC_START
+  - Key: LOC_EDITOR
     Text: Start
-  - Key: LOC_START
+  - Key: LOC_EDITORLOC_EDITORwadwadwaDwadwadwadwadwadwadaw
     Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
+  - Key: LOC_EDITOR
     Text: Start
   - Key: LOC_START
     Text: Start
   - Key: LOC_START
     Text: Start
   - Key: LOC_VALUE
+    Text: Start
+  - Key: LOC_STARTAKDJADKLWAJLKDJWAKLJDLKWAJLKDJLAKWJDKAWJDKLJA
+    Text: Start
+  - Key: LOC_VALUE
     Text: START
-  - Key: LOC_VALUEPALUE
+  - Key: LOC VALUE PALUE
     Text: Start
   - Key: 
     Text: 
@@ -92,7 +92,7 @@ MonoBehaviour:
     Text: Start
   - Key: LOC_START
     Text: Start
-  - Key: LOC_START
+  - Key: LOC_VALUE IS NOT TRUE
     Text: Start
   - Key: LOC_START
     Text: Start
@@ -126,7 +126,7 @@ MonoBehaviour:
     Text: Start
   - Key: LOC_START
     Text: Start
-  - Key: LOC_START
+  - Key: 300
     Text: Start
   - Key: LOC_START
     Text: Start
@@ -19974,19 +19974,23 @@ MonoBehaviour:
     Text: Start
   - Key: LOC_EDADWDAWDWA
     Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
-  - Key: LOC_START
-    Text: Start
+  - Key: "MIT\xC4 VITTUA"
+    Text: 
   - Key: 
+    Text: 
+  - Key: LOC_START
+    Text: Start
+  - Key: LOC_START
+    Text: Start
+  - Key: LOC_START
+    Text: Start
+  - Key: LOC_START
+    Text: Start
+  - Key: LOC_START
+    Text: Start
+  - Key: LOC_START
+    Text: Start
+  - Key: VALUE
     Text: 
   - Key: LOC_VALUE
     Text: Start
@@ -20000,9 +20004,9 @@ MonoBehaviour:
     Text: Start
   - Key: dwadawdw
     Text: dwadwaddwadwadgfdsgfd
-  - Key: LOC_START
-    Text: 
+  - Key: "CAWL\xD6DK\xD6ALWKD\xD6LWAKD\xD6LKWA\xD6LD"
+    Text: faWFawfwaF
   - Key: VALUE
     Text: ADADW
-  - Key: KATO
+  - Key: WHY ARE YOU SO SLOW
     Text: VITTU

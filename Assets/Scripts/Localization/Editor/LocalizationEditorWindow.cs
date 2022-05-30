@@ -11,17 +11,14 @@ namespace PotentialRobot.Localization.Editor
 
         private LocalizationKeys _keyAsset;
         private LocalizationAsset[] _assets;
-        private SerializedObject _keyAssetSO;
-        private List<SerializedObject> _assetsSO;
         private string _searchTerm = string.Empty;
 
-        private List<LocalizationListElement> _elements;
-        private List<LocalizationListElement> _validResults;
+        private List<int> _searchResult = new List<int>();
+        private List<int> _pageItems = new List<int>();
 
         private bool _isInitialized;
         private int _currentPage;
         private int _itemCountOnPage = 20;
-        private CachedLocalizationEntry[] _cachedEntries;
         private Vector2 _scroll;
         private System.Action<int> _onButtonPressed;
         private int _onButtonPressedIndex;
@@ -39,7 +36,6 @@ namespace PotentialRobot.Localization.Editor
         {
             LoadKeys();
             LoadAssets();
-            ReinitializeListItems();
             _isInitialized = true;
         }
 
@@ -89,8 +85,6 @@ namespace PotentialRobot.Localization.Editor
             }
             StopRecordingUndo();
             SetObjectsDirty();
-            Repaint();
-            ReinitializeListItems();
         }
 
         private void RemoveKey(int index)
@@ -103,8 +97,6 @@ namespace PotentialRobot.Localization.Editor
             }
             StopRecordingUndo();
             SetObjectsDirty();
-            Repaint();
-            ReinitializeListItems();
         }
 
         public void OnProjectChange()
@@ -125,43 +117,8 @@ namespace PotentialRobot.Localization.Editor
                 OnGUIDrawCreateAssetsHelper();
         }
 
-        private void ReinitializeListItems()
-        {
-            _elements = new List<LocalizationListElement>(_keyAsset.Keys.Count);
-            _elements.Clear();
-
-            _keyAssetSO = new SerializedObject(_keyAsset);
-            var keysProperty = _keyAssetSO.FindProperty("_keys");
-
-            if (_assetsSO == null) 
-                _assetsSO = new List<SerializedObject>();
-            _assetsSO.Clear();
-
-            List<SerializedProperty> translations = new List<SerializedProperty>(); 
-            foreach (var asset in _assets)
-            {
-                var so = new SerializedObject(asset);
-                _assetsSO.Add(so);
-                translations.Add(so.FindProperty("_translations"));
-            }
-            
-            var count = _keyAsset.Keys.Count;
-            for (var i = 0; i < count; ++i)
-            {
-                var element = new LocalizationListElement
-                {
-                    Key = _keyAsset.Keys[i],
-                    Index = i
-                };
-                _elements.Add(element);
-            }
-            _validResults = null;
-        }
-
         private void OnGUIDrawKeyEditor()
         {
-            if (_elements == null || _keyAsset.Keys.Count != _elements.Count)
-                ReinitializeListItems();
             EditorGUI.BeginChangeCheck();
             {
                 DrawSearch();
@@ -169,12 +126,11 @@ namespace PotentialRobot.Localization.Editor
                 {
                     DrawPage();
                 }
-                DrawPageControls(_validResults.Count);
+                DrawPageControls(_searchTerm.Length > 0 ? _searchResult.Count : _keyAsset.Keys.Count);
                 EditorGUILayout.EndVertical();
             }
             if (EditorGUI.EndChangeCheck())
             {
-                ApplyChanges();
                 _onButtonPressed?.Invoke(_onButtonPressedIndex);
                 _onButtonPressed = null;
             }
@@ -188,19 +144,37 @@ namespace PotentialRobot.Localization.Editor
                 var newTerm = EditorGUILayout.TextField(_searchTerm);
                 var changed = _searchTerm != newTerm;
                 if (changed)
-                    _currentPage = 0;
-                if (_validResults == null || changed)
                 {
-                    string[] searchTerms = newTerm.ToLowerInvariant().Split(c_searchSplitter);
-                    _validResults = _elements;
-                    foreach (var term in searchTerms)
-                    {
-                        _validResults = _validResults.FindAll(s => s.Key.ToLowerInvariant().Contains(term));
-                    }
+                    _currentPage = 0;
                     _searchTerm = newTerm;
-                    var pageStartIndex = GetPageStartIndex();
-                    CacheEntries(pageStartIndex, GetPageItemCount(pageStartIndex, _validResults.Count));
                 }
+                if (changed && !string.IsNullOrEmpty(_searchTerm))
+                {
+                    string[] searchTerms = _searchTerm.ToLowerInvariant().Split(c_searchSplitter);
+                    if (_searchResult != null)
+                        _searchResult.Clear();
+                    else
+                        _searchResult = new List<int>();
+                    
+                    for (var i = 0; i < searchTerms.Length; ++i)
+                    {
+                        if (_searchResult.Count == 0 && i > 0)
+                            break;
+                        
+                        string term = searchTerms[i];
+                        if (_searchResult.Count == 0)
+                        {
+                            for (var j = 0; j < _keyAsset.Keys.Count; ++j)
+                            {
+                                if (_keyAsset.Keys[j].ToLowerInvariant().Contains(term))
+                                    _searchResult.Add(j);
+                            }
+                        }
+                        else
+                            _searchResult = _searchResult.FindAll(value => _keyAsset.Keys[value].Contains(term));
+                    }
+                }
+                
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -219,79 +193,69 @@ namespace PotentialRobot.Localization.Editor
 
         private void DrawPage()
         {
+            var startIndex = GetPageStartIndex();
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             {
-                if (_cachedEntries == null || _cachedEntries.Length <= 0)
+                if (_searchTerm.Length > 0)
                 {
-                    EditorGUILayout.LabelField("No entries found.");
+                    if (_searchResult.Count > 0)
+                    {
+                        var itemCountOnPage = GetPageItemCount(startIndex, _searchResult.Count);
+                        for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
+                        {
+                            DrawEntry(_searchResult[i]);
+                        }
+                    }
+                    else 
+                    {
+                        GUILayout.FlexibleSpace();
+                        EditorGUILayout.LabelField("No entries found...");
+                        GUILayout.FlexibleSpace();
+                    }
                 }
                 else
                 {
-                    for (var i = 0; i < _cachedEntries.Length; ++i)
+                    var itemCountOnPage = GetPageItemCount(startIndex, _keyAsset.Keys.Count);
+                    for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
                     {
-                        DrawEntry(_cachedEntries[i]);
+                        DrawEntry(i);
                     }
                 }
             }
-            EditorGUILayout.LabelField(_cachedEntries?.Length.ToString());
             EditorGUILayout.EndScrollView();
         }
 
-        private void CacheEntries(int startIndex, int count)
+        private void DrawEntry(int index)
         {
-            if (count <= 0)
-            {
-                _cachedEntries = null;
-                return;
-            }
-            _cachedEntries = new CachedLocalizationEntry[count];
-            for (var i = 0; i < count; ++i)
-            {
-                var assetsCount = _assetsSO.Count;
-                var entryIndex = _validResults[startIndex + i].Index;
-                SerializedProperty[] keys = new SerializedProperty[_assetsSO.Count];
-                SerializedProperty[] texts = new SerializedProperty[_assetsSO.Count];
-                for (var j = 0; j < _assetsSO.Count; ++j)
-                {
-                    var translationsProperty = _assetsSO[j].FindProperty("_translations");
-                    var entryProperty = translationsProperty.GetArrayElementAtIndex(entryIndex);
-                    keys[j] = entryProperty.FindPropertyRelative("Key");
-                    texts[j] = entryProperty.FindPropertyRelative("Text");
-                }
-                CachedLocalizationEntry entry = new CachedLocalizationEntry
-                {
-                    Index = entryIndex,
-                    Key = _keyAssetSO.FindProperty("_keys").GetArrayElementAtIndex(entryIndex),
-                    Keys = keys,
-                    Texts = texts
-                };
-                _cachedEntries[i] = entry;
-            }
-        }
-
-        private void DrawEntry(CachedLocalizationEntry element)
-        {
+            LocalizationAsset.Translation cachedValue;
+            string newValue;
             EditorGUILayout.BeginHorizontal();
             {
-                DrawRemoveButton(element.Index);
-                DrawAddButton(element.Index);
-                var previousValue = element.Key.stringValue;
-                var value = EditorGUILayout.TextField(previousValue);
-                if (value != previousValue)
+                DrawRemoveButton(index);
+                DrawAddButton(index);
+                newValue = EditorGUILayout.TextField(_keyAsset.Keys[index]);
+                if (!newValue.Equals(_keyAsset.Keys[index]))
                 {
-                    element.Key.stringValue = value;
-                    for (var i = 0; i < element.Keys.Length; ++i)
-                        element.Keys[i].stringValue = value;
-                    var replace = _elements[element.Index];
-                    replace.Key = value;
-                    _elements[element.Index] = replace;
+                    _keyAsset.Keys[index] = newValue;
+                    for (var i = 0; i < _assets.Length; ++i)
+                    {
+                        cachedValue = _assets[i].Translations[index];
+                        cachedValue.Key = newValue;
+                        _assets[i].Translations[index] = cachedValue;
+                        EditorUtility.SetDirty(_assets[i]);
+                    }
+                    EditorUtility.SetDirty(_keyAsset);
                 }
-
-                foreach (var e in element.Texts)
+                for (var i = 0; i < _assets.Length; ++i)
                 {
-                    var text = EditorGUILayout.TextArea(e.stringValue);
-                    if (text != e.stringValue)
-                        e.stringValue = text;
+                    cachedValue = _assets[i].Translations[index];
+                    newValue = EditorGUILayout.TextField(cachedValue.Text);
+                    if (!newValue.Equals(cachedValue.Text))
+                    {
+                        cachedValue.Text = newValue;
+                        _assets[i].Translations[index] = cachedValue;
+                        EditorUtility.SetDirty(_assets[i]);
+                    }
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -347,22 +311,9 @@ namespace PotentialRobot.Localization.Editor
         {
             _currentPage = newPage;
             int startIndex = GetPageStartIndex();
-            CacheEntries(startIndex, GetPageItemCount(startIndex, _validResults.Count));
         }
 
         #endregion
-
-        private void ApplyChanges()
-        {
-            if (_assetsSO == null || _keyAssetSO == null)
-            {
-                Initialize();
-                return;
-            }
-            foreach (var serializedObject in _assetsSO)
-                serializedObject.ApplyModifiedProperties();
-            _keyAssetSO.ApplyModifiedProperties();
-        }
 
         private void OnGUIDrawCreateAssetsHelper()
         {

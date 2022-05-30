@@ -13,26 +13,26 @@ MonoBehaviour:
   m_Name: LocalizationKeys
   m_EditorClassIdentifier: 
   _keys:
-  - 
+  - LOC VAL
   - LOC_EXIT
-  - LOC_PAUSE
+  - 
   - LOC_SELECT
   - LOC_START
-  - LOC_START
+  - "LOC_START VALUE LUIGIAD LAWKD\xD6LWAKD\xD6LKAW\xD6LD"
   - EGG
   - LOC_START
   - LOC_START
   - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
-  - LOC_START
+  - LOC_EDITOR
+  - LOC_EDITOR
+  - LOC_EDITORLOC_EDITORwadwadwaDwadwadwadwadwadwadaw
+  - LOC_EDITOR
   - LOC_START
   - LOC_START
   - LOC_VALUE
-  - LOC_VALUEPALUE
+  - LOC_STARTAKDJADKLWAJLKDJWAKLJDLKWAJLKDJLAKWJDKAWJDKLJA
+  - LOC_VALUE
+  - LOC VALUE PALUE
   - 
   - 
   - LOC_START
@@ -52,6 +52,7 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
+  - LOC_VALUE IS NOT TRUE
   - LOC_START
   - LOC_START
   - LOC_START
@@ -68,8 +69,7 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_START
-  - LOC_START
-  - LOC_START
+  - 300
   - LOC_START
   - LOC_START
   - LOC_START
@@ -9993,19 +9993,21 @@ MonoBehaviour:
   - LOC_START
   - LOC_START
   - LOC_EDADWDAWDWA
+  - "MIT\xC4 VITTUA"
+  - FAFW
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
-  - 
+  - VALUE
   - LOC_VALUE
   - LOC_START
   - LOC_START
   - LOC_START
   - LOC_START
   - dwadawdw
-  - LOC_START
+  - "CAWL\xD6DK\xD6ALWKD\xD6LWAKD\xD6LKWA\xD6LD"
   - VALUE
-  - KATO
+  - WHY ARE YOU SO SLOW
