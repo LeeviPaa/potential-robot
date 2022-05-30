@@ -171,7 +171,7 @@ namespace PotentialRobot.Localization.Editor
                             }
                         }
                         else
-                            _searchResult = _searchResult.FindAll(value => _keyAsset.Keys[value].Contains(term));
+                            _searchResult = _searchResult.FindAll(value => _keyAsset.Keys[value].ToLowerInvariant().Contains(term));
                     }
                 }
                 
