@@ -14,7 +14,6 @@ namespace PotentialRobot.Localization.Editor
         private string _searchTerm = string.Empty;
 
         private List<int> _searchResult = new List<int>();
-        private List<int> _pageItems = new List<int>();
 
         private bool _isInitialized;
         private int _currentPage;
