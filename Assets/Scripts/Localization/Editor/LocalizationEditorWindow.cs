@@ -8,6 +8,10 @@ namespace PotentialRobot.Localization.Editor
     {
         private const float c_smallSizeButton = 20f;
         private const char c_searchSplitter = ' ';
+        private const string c_textConfirmationPopupTitle = "Are you sure?";
+        private const string c_textConfirmationPopupRemoveEntry = "Do you want to remove entry {0} from the list?";
+        private const string c_textOK = "OK";
+        private const string c_textCancel = "Cancel";
 
         private LocalizationKeys _keyAsset;
         private LocalizationAsset[] _assets;
@@ -40,13 +44,13 @@ namespace PotentialRobot.Localization.Editor
 
         private void LoadKeys()
         {
-            var assets = Resources.LoadAll<LocalizationKeys>("");
+            var assets = Resources.LoadAll<LocalizationKeys>(string.Empty);
             _keyAsset = assets.Length > 0 ? assets[0] : null;
         }
 
         private void LoadAssets()
         {
-            _assets = Resources.LoadAll<LocalizationAsset>("");
+            _assets = Resources.LoadAll<LocalizationAsset>(string.Empty);
         }
 
         private void StartRecordingUndo()
@@ -142,45 +146,42 @@ namespace PotentialRobot.Localization.Editor
                 EditorGUILayout.LabelField("Search:");
                 var newTerm = EditorGUILayout.TextField(_searchTerm);
                 var changed = _searchTerm != newTerm;
+
                 if (changed)
                 {
                     _currentPage = 0;
                     _searchTerm = newTerm;
+                    if (!string.IsNullOrEmpty(_searchTerm))
+                        Search();
                 }
-                if (changed && !string.IsNullOrEmpty(_searchTerm))
-                {
-                    string[] searchTerms = _searchTerm.ToLowerInvariant().Split(c_searchSplitter);
-                    if (_searchResult != null)
-                        _searchResult.Clear();
-                    else
-                        _searchResult = new List<int>();
-                    
-                    for (var i = 0; i < searchTerms.Length; ++i)
-                    {
-                        if (_searchResult.Count == 0 && i > 0)
-                            break;
-                        
-                        string term = searchTerms[i];
-                        if (_searchResult.Count == 0)
-                        {
-                            for (var j = 0; j < _keyAsset.Keys.Count; ++j)
-                            {
-                                if (_keyAsset.Keys[j].ToLowerInvariant().Contains(term))
-                                    _searchResult.Add(j);
-                            }
-                        }
-                        else
-                            _searchResult = _searchResult.FindAll(value => _keyAsset.Keys[value].ToLowerInvariant().Contains(term));
-                    }
-                }
-                
             }
             EditorGUILayout.EndHorizontal();
         }
-        
-        private void ValidatePageIndex(int elementsCount)
+
+        private void Search()
         {
-            _currentPage = Mathf.Clamp(_currentPage, 0, elementsCount / _itemCountOnPage);
+            _searchResult.Clear();
+            string[] searchTerms = _searchTerm.ToLowerInvariant().Split(c_searchSplitter);
+            for (var i = 0; i < searchTerms.Length; ++i)
+            {
+                if (_searchResult.Count == 0 && i > 0)
+                    break;
+                SearchTerm(searchTerms[i]);
+            }
+        }
+
+        private void SearchTerm(string term)
+        {
+            if (_searchResult.Count == 0)
+            {
+                for (var i = 0; i < _keyAsset.Keys.Count; ++i)
+                {
+                    if (_keyAsset.Keys[i].ToLowerInvariant().Contains(term))
+                        _searchResult.Add(i);
+                }
+            }
+            else
+                _searchResult = _searchResult.FindAll(value => _keyAsset.Keys[value].ToLowerInvariant().Contains(term));
         }
 
         private int GetPageStartIndex()
@@ -196,66 +197,49 @@ namespace PotentialRobot.Localization.Editor
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             {
                 if (_searchTerm.Length > 0)
-                {
-                    if (_searchResult.Count > 0)
-                    {
-                        var itemCountOnPage = GetPageItemCount(startIndex, _searchResult.Count);
-                        for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
-                        {
-                            DrawEntry(_searchResult[i]);
-                        }
-                    }
-                    else 
-                    {
-                        GUILayout.FlexibleSpace();
-                        EditorGUILayout.LabelField("No entries found...");
-                        GUILayout.FlexibleSpace();
-                    }
-                }
+                    DrawSearchResult(startIndex);
                 else
-                {
-                    var itemCountOnPage = GetPageItemCount(startIndex, _keyAsset.Keys.Count);
-                    for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
-                    {
-                        DrawEntry(i);
-                    }
-                }
+                    DrawPageDefault(startIndex);
             }
             EditorGUILayout.EndScrollView();
         }
 
+        private void DrawSearchResult(int startIndex)
+        {
+            if (_searchResult.Count > 0)
+            {
+                var itemCountOnPage = GetPageItemCount(startIndex, _searchResult.Count);
+                for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
+                    DrawEntry(_searchResult[i]);
+            }
+            else 
+            {
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField("No entries found...");
+                GUILayout.FlexibleSpace();
+            }
+        }
+
+        private void DrawPageDefault(int startIndex)
+        {
+            var itemCountOnPage = GetPageItemCount(startIndex, _keyAsset.Keys.Count);
+            for (var i = startIndex; i < startIndex + itemCountOnPage; ++i)
+            {
+                DrawEntry(i);
+            }
+        }
+
+        private LocalizationAsset.Translation _cachedTranslation;
+        private string _cachedValue;
+
         private void DrawEntry(int index)
         {
-            LocalizationAsset.Translation cachedValue;
-            string newValue;
             EditorGUILayout.BeginHorizontal();
             {
                 DrawRemoveButton(index);
                 DrawAddButton(index);
-                newValue = EditorGUILayout.TextField(_keyAsset.Keys[index]);
-                if (!newValue.Equals(_keyAsset.Keys[index]))
-                {
-                    _keyAsset.Keys[index] = newValue;
-                    for (var i = 0; i < _assets.Length; ++i)
-                    {
-                        cachedValue = _assets[i].Translations[index];
-                        cachedValue.Key = newValue;
-                        _assets[i].Translations[index] = cachedValue;
-                        EditorUtility.SetDirty(_assets[i]);
-                    }
-                    EditorUtility.SetDirty(_keyAsset);
-                }
-                for (var i = 0; i < _assets.Length; ++i)
-                {
-                    cachedValue = _assets[i].Translations[index];
-                    newValue = EditorGUILayout.TextField(cachedValue.Text);
-                    if (!newValue.Equals(cachedValue.Text))
-                    {
-                        cachedValue.Text = newValue;
-                        _assets[i].Translations[index] = cachedValue;
-                        EditorUtility.SetDirty(_assets[i]);
-                    }
-                }
+                DrawKeyField(index);
+                DrawTranslations(index);
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -271,13 +255,52 @@ namespace PotentialRobot.Localization.Editor
 
         private void DrawRemoveButton(int index)
         {
-            if (GUILayout.Button("-", GUILayout.Width(c_smallSizeButton)))
+            if (GUILayout.Button("-", GUILayout.Width(c_smallSizeButton))
+                && EditorUtility.DisplayDialog(c_textConfirmationPopupTitle, string.Format(c_textConfirmationPopupRemoveEntry, index), c_textOK, c_textCancel))
             {
-                if (EditorUtility.DisplayDialog("Are you sure?", $"Do you want to remove entry {index} from the list?", "Yes", "No"))
+                _onButtonPressed = RemoveKey;
+                _onButtonPressedIndex = index;
+            }
+        }
+
+        private void DrawKeyField(int index)
+        {
+            _cachedValue = EditorGUILayout.TextField(_keyAsset.Keys[index]);
+            if (_cachedValue.Equals(_keyAsset.Keys[index]))
+                return;
+            
+            StartRecordingUndo();
+            {
+                _keyAsset.Keys[index] = _cachedValue;
+                for (var i = 0; i < _assets.Length; ++i)
                 {
-                    _onButtonPressed = RemoveKey;
-                    _onButtonPressedIndex = index;
+                    _cachedTranslation = _assets[i].Translations[index];
+                    _cachedTranslation.Key = _cachedValue;
+                    _assets[i].Translations[index] = _cachedTranslation;
+                    EditorUtility.SetDirty(_assets[i]);
                 }
+                EditorUtility.SetDirty(_keyAsset);
+            }
+            StopRecordingUndo();
+        }
+
+        private void DrawTranslations(int index)
+        {
+            for (var i = 0; i < _assets.Length; ++i)
+            {
+                _cachedTranslation = _assets[i].Translations[index];
+                _cachedValue = EditorGUILayout.TextField(_cachedTranslation.Text);
+                
+                if (_cachedValue.Equals(_cachedTranslation.Text))
+                    continue;
+                
+                StartRecordingUndo();
+                {
+                    _cachedTranslation.Text = _cachedValue;
+                    _assets[i].Translations[index] = _cachedTranslation;
+                    EditorUtility.SetDirty(_assets[i]);
+                }
+                StopRecordingUndo();
             }
         }
 
@@ -316,7 +339,7 @@ namespace PotentialRobot.Localization.Editor
 
         private void OnGUIDrawCreateAssetsHelper()
         {
-            EditorGUILayout.LabelField("Unable to load config");
+            EditorGUILayout.LabelField("No config files created.");
             if (GUILayout.Button("Reload"))
                 Initialize();
         }
